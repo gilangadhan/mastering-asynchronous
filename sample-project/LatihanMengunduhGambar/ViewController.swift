@@ -20,7 +20,6 @@ class ViewController: UIViewController {
       forCellReuseIdentifier: "movieTableViewCell"
     )
   }
-
 }
 
 extension ViewController: UITableViewDataSource {
@@ -43,12 +42,37 @@ extension ViewController: UITableViewDataSource {
       
       let movie = movies[indexPath.row]
       cell.movieTitle.text = movie.title
+      cell.movieImage.image = movie.image
 
-      cell.indicatorLoading.startAnimating()
+      if movie.state == .new {
+        cell.indicatorLoading.isHidden = false
+        cell.indicatorLoading.startAnimating()
+        startDownload(movie: movie, indexPath: indexPath)
+      } else {
+        cell.indicatorLoading.stopAnimating()
+        cell.indicatorLoading.isHidden = true
+      }
+
       return cell
-
     } else {
       return UITableViewCell()
+    }
+  }
+
+  fileprivate func startDownload(movie: Movie, indexPath: IndexPath) {
+    let imageDownloader = ImageDownloader()
+    if movie.state == .new {
+      Task {
+        do {
+          let image = try await imageDownloader.downloadImage(url: movie.poster)
+          movie.state = .downloaded
+          movie.image = image
+          self.movieTableView.reloadRows(at: [indexPath], with: .automatic)
+        } catch {
+          movie.state = .failed
+          movie.image = nil
+        }
+      }
     }
   }
 
