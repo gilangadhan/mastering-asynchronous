@@ -7,16 +7,22 @@
 
 import UIKit
 
+enum DownloadState {
+  case new, downloaded, failed
+}
+
 class Movie {
   let title: String
   let poster: URL
+
+  var image: UIImage?
+  var state: DownloadState = .new
 
   init(title: String, poster: URL) {
     self.title = title
     self.poster = poster
   }
 }
-
 
 let movies = [
   Movie(
